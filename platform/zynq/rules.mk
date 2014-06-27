@@ -17,10 +17,10 @@ GLOBAL_INCLUDES += \
 MODULE_SRCS += \
 	$(LOCAL_DIR)/clocks.c \
 	$(LOCAL_DIR)/debug.c \
+	$(LOCAL_DIR)/fpga.c \
 	$(LOCAL_DIR)/platform.c \
-	$(LOCAL_DIR)/start.S \
+	$(LOCAL_DIR)/qspi.c \
 	$(LOCAL_DIR)/uart.c \
-	$(LOCAL_DIR)/fpga.c
 
 # default to no sdram unless the target calls it out
 ZYNQ_SDRAM_SIZE ?= 0
