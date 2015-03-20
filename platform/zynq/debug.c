@@ -65,8 +65,9 @@ void platform_halt(platform_halt_action suggested_action,
         case HALT_ACTION_SHUTDOWN:
         case HALT_ACTION_HALT:
             printf("HALT: spinning forever... (reason = %d)\n", reason);
-            arch_disable_ints();
-            for(;;);
+            enter_critical_section();
+            for(;;)
+                arch_idle();
             break;
         case HALT_ACTION_REBOOT:
             printf("REBOOT\n");
