@@ -100,7 +100,7 @@ static void debug_rx_handler(pktbuf_t *p)
 {
     static uint32_t pkt = 0;
 
-    printf("[%10lu] packet %u, %zu bytes:\n", current_time(), ++pkt, p->dlen);
+    printf("[%10u] packet %u, %zu bytes:\n", (uint32_t)current_time(), ++pkt, p->dlen);
     hexdump8(p->data, p->dlen);
     putchar('\n');
 }
@@ -132,9 +132,8 @@ void queue_pkts_in_tx_tbl(void) {
     pktbuf_t *p;
     unsigned int cur_pos;
 
-    enter_critical_section();
     if (list_is_empty(&gem.tx_queue)) {
-        goto exit;
+        return;
     }
 
     // XXX handle multi part buffers
@@ -166,9 +165,6 @@ void queue_pkts_in_tx_tbl(void) {
 
     DMB;
     gem.regs->net_ctrl |= NET_CTRL_START_TX;
-
-exit:
-    spin_unlock_irqrestore(&lock, irqstate);
 }
 
 int gem_send_raw_pkt(struct pktbuf *p)
@@ -243,7 +239,10 @@ enum handler_return gem_int_handler(void *arg) {
 
         /* The controller has processed packets until it hit a buffer owned by the driver */
         if (intr_status & INTR_TX_USED_READ) {
+            spin_lock_saved_state_t irqstate;
+            spin_lock_irqsave(&lock, irqstate);
             queue_pkts_in_tx_tbl();
+            spin_unlock_irqrestore(&lock, irqstate);
             gem.regs->tx_status |= TX_STATUS_USED_READ;
         }
 
