@@ -36,8 +36,8 @@ GLOBAL_DEFINES += \
 MEMSIZE ?= 20480
 endif
 
-GLOBAL_INCLUDES += \
-	$(LOCAL_DIR)/include
+GLOBAL_DEFINES += \
+	MEMSIZE=$(MEMSIZE)
 
 MODULE_SRCS += \
 	$(LOCAL_DIR)/init.c \

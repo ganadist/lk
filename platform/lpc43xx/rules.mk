@@ -9,8 +9,8 @@ MEMSIZE ?= 40960
 ARCH := arm
 ARM_CPU := cortex-m4
 
-GLOBAL_INCLUDES += \
-	$(LOCAL_DIR)/include
+GLOBAL_DEFINES += \
+	MEMSIZE=$(MEMSIZE)
 
 MODULE_SRCS += \
 	$(LOCAL_DIR)/init.c \

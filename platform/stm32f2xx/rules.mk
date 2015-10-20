@@ -30,8 +30,8 @@ ifeq ($(FOUND_CHIP),)
 $(error unknown STM32F2xx chip $(STM32_CHIP))
 endif
 
-GLOBAL_INCLUDES += \
-	$(LOCAL_DIR)/include
+GLOBAL_DEFINES += \
+	MEMSIZE=$(MEMSIZE)
 
 MODULE_SRCS += \
 	$(LOCAL_DIR)/init.c \
