@@ -22,9 +22,12 @@
  */
 #pragma once
 
+#include <compiler.h>
 #include <sys/types.h>
 #include <kernel/event.h>
 #include <iovec.h>
+
+__BEGIN_CDECLS
 
 typedef struct cbuf {
     uint head;
@@ -155,4 +158,6 @@ static inline void cbuf_reset(cbuf_t *cbuf)
 /* special cases for dealing with a single char of data */
 size_t cbuf_read_char(cbuf_t *cbuf, char *c, bool block);
 size_t cbuf_write_char(cbuf_t *cbuf, char c, bool canreschedule);
+
+__END_CDECLS
 
