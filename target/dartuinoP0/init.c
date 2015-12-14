@@ -140,8 +140,6 @@ void target_init(void)
 
     // start usb
     target_usb_setup();
-
-    sensor_bus_init();
 }
 
 void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi)
