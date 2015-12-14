@@ -21,10 +21,9 @@ GLOBAL_DEFINES += \
     PLL_N_VALUE=336 \
     PLL_P_VALUE=2 \
 \
-    PKTBUF_POOL_SIZE=16
-
-MODULES += \
-	app/accelerometer \
+    PKTBUF_POOL_SIZE=16 \
+\
+    TARGET_HAS_DEBUG_LED=1
 
 GLOBAL_INCLUDES += $(LOCAL_DIR)/include
 
