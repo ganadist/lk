@@ -118,16 +118,37 @@ static void pendsv(struct arm_cm_exception_frame_long *frame)
 __NAKED void _pendsv(void)
 {
     __asm__ volatile(
-        "push   { r4-r11, lr };"
-        "mov    r0, sp;"
-        "bl     %0;"
-        "pop    { r4-r11, lr };"
+#if       (__CORTEX_M >= 0x03)
+
+        "push	{ r4-r11, lr };"
+        "mov	r0, sp;"
+        "bl		%0;"
+        "pop	{ r4-r11, lr };"
+        "bx		lr;"
+#else
+        "push   { lr };"
+        "mov    r0, r8;"
+        "mov    r1, r9;"
+        "mov    r2, r10;"
+        "mov    r3, r11;"
+        "push   { r0-r3 };"
+        "push   { r4-r7 };"
+        "mov	r0, sp;"
+        "bl     %c0;"
+        "pop    { r4-r7 };"
+        "pop    { r0-r3 };"
+        "mov    r8 , r0;"
+        "mov    r9 , r1;"
+        "mov    r10, r2;"
+        "mov    r11, r3;"
+        "pop    { r0 };"
+        "mov    lr, r0;"
         "bx     lr;"
+#endif
         :: "i" (pendsv)
     );
     __UNREACHABLE;
 }
-
 /*
  * svc handler, used to hard switch the cpu into exception mode to return
  * to preempted thread.
@@ -136,36 +157,30 @@ __NAKED void _svc(void)
 {
     __asm__ volatile(
         /* load the pointer to the original exception frame we want to restore */
-        "mov    sp, r4;"
-        "pop    { r4-r11, lr };"
-        "bx     lr;"
-        ::  [FPCCR] "i"(&FPU->FPCCR),
-            [LSPACT] "i"(FPU_FPCCR_LSPACT_Msk)
+#if       (__CORTEX_M >= 0x03)
+        "mov	sp, r4;"
+        "pop	{ r4-r11, lr };"
+        "bx		lr;"
+#else
+        "mov	sp, r4;"
+        "pop    { r4-r7 };"
+        "pop    { r0-r3 };"
+        "mov    r8 , r0;"
+        "mov    r9 , r1;"
+        "mov    r10, r2;"
+        "mov    r11, r3;"
+        "pop	{ pc };"
+#endif
     );
 }
 
 __NAKED static void _half_save_and_svc(struct thread *oldthread, struct thread *newthread, bool fpu_save, bool restore_fpu)
 {
     __asm__ volatile(
-        /* see if we need to save fpu context */
-        "tst    r2, #1;"
-        "beq    0f;"
+#if       (__CORTEX_M >= 0x03)
 
-        /* save part of the fpu context on the stack */
-        "vmrs   r2, fpscr;"
-        "push   { r2 };"
-        "vpush  { s0-s15 };"
-
-        /* save the top regs into the thread struct */
-        "add    r2, r0, %[fp_off];"
-        "vstm   r2, { s16-s31 };"
-
-        /* save regular context */
-        "0: push   { r4-r11, lr };"
-        "str    sp, [r0, %[sp_off]];"
-
-        /* restore the new thread's stack pointer, but not the integer state (yet) */
-        "0: ldr    sp, [r1, %[sp_off]];"
+        "push	{ r4-r11, lr };"
+        "str	sp, [r0];"
 
         /* see if we need to restore fpu context */
         "tst    r3, #1;"
@@ -184,11 +199,27 @@ __NAKED static void _half_save_and_svc(struct thread *oldthread, struct thread *
         "clrex;"
         "cpsie  i;"
 
-        "mov    r4, sp;"
-        "svc    #0;" /* make a svc call to get us into handler mode */
-        ::  [sp_off] "i"(offsetof(thread_t, arch.sp)),
-            [fp_off] "i"(offsetof(thread_t, arch.fpregs)),
-            [fp_exc_off] "i"(sizeof(struct arm_cm_exception_frame_long))
+        "mov	r4, r1;"
+        "svc #0;" /* make a svc call to get us into handler mode */
+
+#else
+        "push   { lr };"
+        "mov    r2, r10;"
+        "mov    r3, r11;"
+        "push   { r2-r3 };"
+        "mov    r2, r8;"
+        "mov    r3, r9;"
+        "push   { r2-r3 };"
+        "push   { r4-r7 };"
+
+        "mov    r3, sp;"
+        "str	r3, [r0];"
+        "mov	sp, r1;"
+        "cpsie 	i;"
+
+        "mov	r4, r1;"
+        "svc #0;"           /* make a svc call to get us into handler mode */
+#endif
     );
 }
 
@@ -196,62 +227,54 @@ __NAKED static void _half_save_and_svc(struct thread *oldthread, struct thread *
 __NAKED static void _arch_non_preempt_context_switch(struct thread *oldthread, struct thread *newthread, bool save_fpu, bool restore_fpu)
 {
     __asm__ volatile(
-        /* see if we need to save fpu context */
-        "tst    r2, #1;"
-        "beq    0f;"
+#if       (__CORTEX_M >= 0x03)
+        "push	{ r4-r11, lr };"
+        "str	sp, [r0];"
 
-        /* save part of the fpu context on the stack */
-        "vmrs   r2, fpscr;"
-        "push   { r2 };"
-        "vpush  { s0-s15 };"
+        "mov	sp, r1;"
+        "pop	{ r4-r11, lr };"
+        "clrex;"
+        "bx		lr;"
+#else
+        "push   { lr };"
+        "mov    r2, r10;"
+        "mov    r3, r11;"
+        "push   { r2-r3 };"
+        "mov    r2, r8;"
+        "mov    r3, r9;"
+        "push   { r2-r3 };"
+        "push   { r4-r7 };"
 
-        /* save the top regs into the thread struct */
-        "add    r2, r0, %[fp_off];"
-        "vstm   r2, { s16-s31 };"
+        "mov    r3, sp;"
+        "str	r3, [r0];"
+        "mov	sp, r1;"
 
-        /* save regular context */
-        "0: push   { r4-r11, lr };"
-        "str    sp, [r0, %[sp_off]];"
-
-        /* restore new context */
-        "ldr    sp, [r1, %[sp_off]];"
-        "pop    { r4-r11, lr };"
-
-        /* see if we need to restore fpu context */
-        "tst    r3, #1;"
-        "beq    0f;"
-
-        /* restore fpu context */
-        "add    r3, r1, %[fp_off];"
-        "vldm   r3, { s16-s31 };"
-
-        "vpop   { s0-s15 };"
-        "pop    { r3 };"
-        "vmsr   fpscr, r3;"
-
-        "0: clrex;"
-        "bx     lr;"
-        ::  [sp_off] "i"(offsetof(thread_t, arch.sp)),
-            [fp_off] "i"(offsetof(thread_t, arch.fpregs))
+        "pop    { r4-r7 };"
+        "pop    { r0-r3 };"
+        "mov    r8 , r0;"
+        "mov    r9 , r1;"
+        "mov    r10, r2;"
+        "mov    r11, r3;"
+        "pop    { pc };"
+#endif
     );
 }
 
 __NAKED static void _thread_mode_bounce(void)
 {
     __asm__ volatile(
-        /* restore main context */
-        "pop    { r4-r11, lr };"
-
-        /* see if we need to restore fpu context */
-        "tst    r0, #1;"
-        "beq    0f;"
-
-        /* restore fpu context */
-        "vpop   { s0-s15 };"
-        "pop    { r0 };"
-        "vmsr   fpscr, r0;"
-
-        "0: bx     lr;"
+#if       (__CORTEX_M >= 0x03)
+        "pop	{ r4-r11, lr };"
+        "bx		lr;"
+#else
+        "pop    { r4-r7 };"
+        "pop    { r0-r3 };"
+        "mov    r8 , r0;"
+        "mov    r9 , r1;"
+        "mov    r10, r2;"
+        "mov    r11, r3;"
+        "pop    { pc };"
+#endif
     );
     __UNREACHABLE;
 }
@@ -316,11 +339,22 @@ void arch_context_switch(struct thread *oldthread, struct thread *newthread)
                     FPU->FPCCR & FPU_FPCCR_LSPACT_Msk, FPU->FPCAR, __get_CONTROL() & CONTROL_FPCA_Msk);
             //hexdump((void *)newthread->arch.sp, 128+64);
             __asm__ volatile(
-                "mov    sp, %0;"
-                "cpsie  i;"
-                "pop    { r4-r11, lr };"
+                "mov	sp, %0;"
+#if       (__CORTEX_M >= 0x03)
+                "cpsie	i;"
+                "pop	{ r4-r11, lr };"
                 "clrex;"
-                "bx     lr;"
+                "bx		lr;"
+#else
+                "cpsie	i;"
+                "pop    { r4-r7 };"
+                "pop    { r0-r3 };"
+                "mov    r8 , r0;"
+                "mov    r9 , r1;"
+                "mov    r10, r2;"
+                "mov    r11, r3;"
+                "pop    { pc };"
+#endif
                 :: "r"(newthread->arch.sp)
             );
             __UNREACHABLE;
@@ -339,9 +373,11 @@ void arch_context_switch(struct thread *oldthread, struct thread *newthread)
             //hexdump(frame, 128+32);
 
             __asm__ volatile(
-                "clrex;"
-                "mov    sp, %0;"
-                "bx     %1;"
+#if       (__CORTEX_M >= 0x03)
+		"clrex;"
+#endif
+                "mov	sp, %0;"
+                "bx		%1;"
                 :: "r"(frame), "r"(0xfffffff9)
             );
             __UNREACHABLE;

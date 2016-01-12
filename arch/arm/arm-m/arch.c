@@ -39,10 +39,11 @@ unsigned int arm_cm_irq_pri_mask;
 
 void arch_early_init(void)
 {
-    uint i;
 
     arch_disable_ints();
 
+#if     (__CORTEX_M >= 0x03) || (CORTEX_SC >= 300)
+    uint i;
     /* set the vector table base */
     SCB->VTOR = (uint32_t)&vectab;
 
@@ -77,6 +78,7 @@ void arch_early_init(void)
     SCB->SHCSR |= (SCB_SHCSR_USGFAULTENA_Msk | SCB_SHCSR_BUSFAULTENA_Msk | SCB_SHCSR_MEMFAULTENA_Msk);
 
     /* set the svc and pendsv priority level to pretty low */
+#endif
     NVIC_SetPriority(SVCall_IRQn, arm_cm_lowest_priority());
     NVIC_SetPriority(PendSV_IRQn, arm_cm_lowest_priority());
 
@@ -115,6 +117,8 @@ void arch_idle(void)
     __asm__ volatile("wfi");
 }
 
+#if     (__CORTEX_M >= 0x03) || (CORTEX_SC >= 300)
+
 void _arm_cm_set_irqpri(uint32_t pri)
 {
     if (pri == 0) {
@@ -133,6 +137,8 @@ void _arm_cm_set_irqpri(uint32_t pri)
         __enable_irq(); // cpsie i
     }
 }
+#endif
+
 
 void arm_cm_irq_entry(void)
 {
@@ -156,7 +162,7 @@ void arm_cm_irq_exit(bool reschedule)
         arm_cm_trigger_preempt();
 
     KEVLOG_IRQ_EXIT(__get_IPSR());
-
+    
     __enable_irq(); // clear PRIMASK
 }
 
