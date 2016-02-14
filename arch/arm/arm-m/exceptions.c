@@ -174,7 +174,7 @@ void _usagefault(void)
 
 __NAKED void _hardfault(void)
 {
-    struct arm_cm_exception_frame * frame;
+    struct arm_cm_exception_frame *frame;
     __asm__ volatile(
         "push	{r4-r7};"
         "mov   r4, r8;"
@@ -195,7 +195,7 @@ __NAKED void _hardfault(void)
 
 void _memmanage(void)
 {
-    struct arm_cm_exception_frame * frame;
+    struct arm_cm_exception_frame *frame;
     __asm__ volatile(
         "push	{r4-r7};"
         "mov   r4, r8;"
@@ -215,7 +215,7 @@ void _memmanage(void)
 
 void _busfault(void)
 {
-    struct arm_cm_exception_frame * frame;
+    struct arm_cm_exception_frame *frame;
     __asm__ volatile(
         "push	{r4-r7};"
         "mov   r4, r8;"
@@ -235,7 +235,7 @@ void _busfault(void)
 
 void _usagefault(void)
 {
-    struct arm_cm_exception_frame * frame;
+    struct arm_cm_exception_frame *frame;
     __asm__ volatile(
         "push	{r4-r7};"
         "mov   r4, r8;"

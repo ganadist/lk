@@ -58,15 +58,15 @@ int platform_dgetc(char *c, bool wait)
 
 /* zynq specific halt */
 void platform_halt(platform_halt_action suggested_action,
-                          platform_halt_reason reason)
+                   platform_halt_reason reason)
 {
     switch (suggested_action) {
         default:
         case HALT_ACTION_SHUTDOWN:
         case HALT_ACTION_HALT:
             printf("HALT: spinning forever... (reason = %d)\n", reason);
-            enter_critical_section();
-            for(;;)
+            arch_disable_ints();
+            for (;;)
                 arch_idle();
             break;
         case HALT_ACTION_REBOOT:
