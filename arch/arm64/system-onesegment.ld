@@ -98,9 +98,8 @@ SECTIONS
         __data_end = .;
     }
 
-    /* unintialized data (in same segment as writable data) */
-    .bss : ALIGN(4096) {
-        __bss_start = .;
+    /* uninitialized data (in same segment as writable data) */
+    .bss : ALIGN(8) {
         KEEP(*(.bss.prebss.*))
         . = ALIGN(8);
 	__post_prebss_bss_start = .;
