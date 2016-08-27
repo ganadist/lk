@@ -12,7 +12,7 @@
 
 #include <kernel/vm.h>
 
-namespace utils {
+namespace mxtl {
 
 //  Bounded FIFO buffer class. Not thread-safe.
 //
@@ -20,7 +20,7 @@ namespace utils {
 //
 //    class MyThing { ... };
 //
-//    utils::FifoBuffer<MyThing> fifo;
+//    mxtl::FifoBuffer<MyThing> fifo;
 //
 //    fifo.Init(256);    allocates enough memory for 256 objects.
 //

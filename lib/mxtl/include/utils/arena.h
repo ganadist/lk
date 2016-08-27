@@ -15,7 +15,7 @@
 #include <utils/ref_ptr.h>
 #include <utils/type_support.h>
 
-namespace utils {
+namespace mxtl {
 
 // Arena is a fast memory allocator for objects of a single size.
 // Both Alloc() and Free() are always O(1) and memory always comes
@@ -68,7 +68,7 @@ private:
     char* d_end_;
 
     // Memory management.
-    utils::RefPtr<VmObject> vmo_;
+    mxtl::RefPtr<VmObject> vmo_;
     char* p_top_;
 };
 
@@ -82,7 +82,7 @@ public:
     template <typename... Args>
     T* New(Args&&... args) {
         void* addr = arena_.Alloc();
-        return addr ? new (addr) T(utils::forward<Args>(args)...) : nullptr;
+        return addr ? new (addr) T(mxtl::forward<Args>(args)...) : nullptr;
     };
 
     void Delete(T* obj) {

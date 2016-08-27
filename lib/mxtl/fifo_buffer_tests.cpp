@@ -20,7 +20,7 @@ struct Packet {
 static bool fifo_basic(void* context) {
     BEGIN_TEST;
 
-    utils::FifoBuffer<Packet> fifo;
+    mxtl::FifoBuffer<Packet> fifo;
     fifo.Init(16u);
 
     EXPECT_EQ(true, fifo.is_empty(), "should be empty");

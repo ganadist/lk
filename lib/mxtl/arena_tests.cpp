@@ -23,7 +23,7 @@ struct ArenaFoo {
 static bool arena_test(void* context)
 {
     BEGIN_TEST;
-    utils::TypedArena<ArenaFoo> arena;
+    mxtl::TypedArena<ArenaFoo> arena;
     arena.Init("arena_tests", 1000);
 
     const int count = 30;

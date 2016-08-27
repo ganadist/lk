@@ -15,7 +15,7 @@
 #include <kernel/vm.h>
 #include <kernel/vm/vm_aspace.h>
 
-namespace utils {
+namespace mxtl {
 
 Arena::Arena()
     : ob_size_(0u),

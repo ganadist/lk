@@ -5,7 +5,7 @@
 # license that can be found in the LICENSE file or at
 # https://opensource.org/licenses/MIT
 
-SRC_DIR := system/ulib/utils
+SRC_DIR := system/ulib/mxtl
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
 MODULE := $(LOCAL_DIR)
